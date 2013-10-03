@@ -42,9 +42,9 @@ namespace :deploy do
       system "mkdir -p #{@options[:config]['environment']['http_dir']}#{domain}/public"
       
       template = File.read('templates/vhost_config_rails.erb')
-      config = ERB.new(template).result(self.get_binding)
+      config = ERB.new(template).result(binding)
       
-      put config, "#{@options[:config]['environment']['conf_dir']}#{domain})"
+      File.open("#{@options[:config]['environment']['conf_dir']}#{domain}.conf", 'w') {|f| f.write(config)}
     rescue
       puts alert("There was an error creating web server configuration and directories")
     else
@@ -95,10 +95,10 @@ namespace :deploy do
     require 'mysql'
     puts inform("Creating database #{db['name']}")
     begin
-      user = truncate(user, :length => 16)
+      user = user[0,15]
       c = Mysql.new db['servers'][0], db['deploy_user'], db['deploy_pass']
       c.query("CREATE DATABASE #{db['name']}")
-      c.query("GRANT ALL ON prod_#{db['name']}.* TO #{user}@'%' identified by '#{pwd}")
+      c.query("GRANT ALL ON prod_#{db['name']}.* TO #{user}@'%' identified by '#{pwd}'")
       c.close
     rescue
       puts alert("Couldn't create database #{db['name']}")
