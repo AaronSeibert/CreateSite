@@ -4,19 +4,13 @@
   ServerAdmin webmaster@<%= domain %>
 
   ## Vhost docroot
-  DocumentRoot /var/www/vhosts/<%= domain %>/public
+  DocumentRoot /var/rails_apps/<%= domain %>/current/public
 
-  <Directory /var/www/vhosts/<%= domain %>/public>
+  <Directory /var/rails_apps/<%= domain %>/current/public>
     Options Indexes FollowSymLinks MultiViews
     AllowOverride All
     Order allow,deny
     Allow from all
   </Directory>
-
-  ## Logging
-  ErrorLog /var/log/vhosts/<%= domain %>/error_log
-  LogLevel warn
-  ServerSignature Off
-  CustomLog /var/log/vhosts/<%= domain %>/access_log combined
  
 </VirtualHost>
