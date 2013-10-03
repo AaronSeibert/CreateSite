@@ -21,7 +21,7 @@ namespace :deploy do
     deploy::push_bits
   end
   
-  task :push_bits, :hosts => @options[:config]['environments']['web_servers'] do
+  task :push_bits, :hosts => @options[:config]['environment']['web_servers'] do
     
     require 'erb'
   
