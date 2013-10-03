@@ -1,10 +1,11 @@
 namespace :deploy do
   
   load 'utility.rb'
+  role :web, @options[:config]['environments']['web_servers']
   
   task :rails do
     @options = get_options
-    role :web, @options[:config]['environments']['web_servers']
+    
     
     pwd = (0...12).map { (65 + rand(26)).chr }.join
     
