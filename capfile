@@ -25,7 +25,7 @@ namespace :deploy do
     
     if @options[:db]
       @options[:config]['environment']['db']['name'] = "prod_#{@options[:nickname]}"
-      create_db(@options[:config]['environment']['db'], pwd)
+      create_db(@options[:config]['environment']['db'], pwd, @options[:nickname])
     end
     
     deploy::push_bits
@@ -91,13 +91,14 @@ namespace :deploy do
     end
   end
   
-  def create_db(db, pwd)
+  def create_db(db, pwd, user)
     require 'mysql'
     puts inform("Creating database #{db['name']}")
     begin
+      user = user.substring(0,15)
       c = Mysql.new db['servers'][0], db['deploy_user'], db['deploy_pass']
       c.query("CREATE DATABASE #{db['name']}")
-      c.query("GRANT ALL ON prod_#{db['name']}.* TO #{db['name']}@'%' identified by '#{pwd}")
+      c.query("GRANT ALL ON prod_#{db['name']}.* TO #{user}@'%' identified by '#{pwd}")
       c.close
     rescue
       puts alert("Couldn't create database #{db['name']}")
