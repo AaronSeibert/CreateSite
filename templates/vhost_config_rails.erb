@@ -1,0 +1,22 @@
+<VirtualHost *:80>
+  ServerName #{domain}
+  ServerAlias www.#{domain}
+  ServerAdmin webmaster@#{domain}
+
+  ## Vhost docroot
+  DocumentRoot /var/www/vhosts/#{domain}/public
+
+  <Directory /var/www/vhosts/#{domain}/public>
+    Options Indexes FollowSymLinks MultiViews
+    AllowOverride All
+    Order allow,deny
+    Allow from all
+  </Directory>
+
+  ## Logging
+  ErrorLog /var/log/vhosts/#{domain}/error_log
+  LogLevel warn
+  ServerSignature Off
+  CustomLog /var/log/vhosts/#{domain}/access_log combined
+ 
+</VirtualHost>

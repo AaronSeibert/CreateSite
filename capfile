@@ -1,0 +1,97 @@
+namespace :deploy do
+  
+  load 'utility.rb'
+  
+  task :rails do
+    @options = get_options
+    role :web, @config['environments']['web_servers']
+    
+    pwd = (0...12).map { (65 + rand(26)).chr }.join
+    
+    if @options[:create_dns]
+      api = init_api('linode', @options[:config]['apis']['linode']['key'])
+      create_zone(api, @options[:domain], @options[:soa]) 
+    end
+    
+    if @options[:db]
+      @options[:config]['environment']['db']['name'] = "prod_#{@options[:nickname]}"
+      create_db(@options[:config]['environment']['db'], pwd)
+    end
+  end
+  
+  task :push_bits, :roles => web do
+    
+    require 'erb'
+  
+    domain = @options[:domain]
+    begin
+      puts inform("Creating web server configuration and directories")   
+      run "mkdir -p #{@options[:config]['environment']['log_dir']}#{domain}"
+      system "mdir -p #{@options[:config]['environment']['http_dir']}#{domain}/public"
+      
+      template = File.read('templates/vhost_config_rails.erb')
+      config = ERB.new(template).result(self.get_binding)
+      
+      put config, "#{@options[:config]['environment']['conf_dir']}#{domain})"
+    rescue
+      puts alert("There was an error creating web server configuration and directories")
+    else
+      puts inform("Web server configuration and directories created successfully")
+    end
+  end
+  
+  def get_options
+    require 'yaml'
+    set(:client, Capistrano::CLI.ui.ask("Client Name: ") )
+    set(:nickname, Capistrano::CLI.ui.ask("Site Nickname: ") )
+    set(:domain, Capistrano::CLI.ui.ask("Domain: ") )
+
+    create_dns = Capistrano::CLI.ui.agree("Create DNS zone and records? ([Yes] or No): ")
+    
+    if create_dns
+      set(:soa, Capistrano::CLI.ui.ask("SOA email: "))
+    else
+      set(:soa, "")
+    end
+    
+    create_database = Capistrano::CLI.ui.agree("Create database? ([Yes] or No): ")
+    @config = YAML.load_file('config/settings.yml')
+    
+    @options = {:dns => create_dns, :db => create_database, :config => @config, :client => client, :nickname => nickname, :domain => domain, :soa => soa}
+    return @options
+  end
+  
+  def init_api(provider, key)
+    require 'linode'
+    return Linode.new(:api_key => key)
+  end
+  
+  def create_zone(api, zone, soa)
+    puts inform("Creating Zone for #{domain}")
+    begin
+      api.domain.create(:domain => zone, :type => "master", :soa_email => soa)
+    rescue
+      puts alert("Zone for #{zone} not created")
+      abort
+    else
+      puts inform("Zone for #{zone} created.")
+    end
+  end
+  
+  def create_db(db, pwd)
+    require 'mysql'
+    puts inform("Creating database #{db['name']}")
+    begin
+      c = Mysql.new db['servers'][0], db['deploy_user'], db['deploy_pass']
+      c.query("CREATE DATABASE prod_#{db['name']}")
+      c.query("GRANT ALL ON prod_#{db['name']}.* TO #{db['name']}@'%' identified by '#{pwd}")
+      c.close
+    rescue
+      puts alert("Couldn't create database #{db['name']}")
+    else
+      puts inform("Successfully created database #{db['name']}")
+      puts inform("DB User: #{db['name']}")
+      puts inform("DB Password: #{pwd}")
+    end
+  end
+end
