@@ -37,8 +37,8 @@ namespace :deploy do
     domain = @options[:domain]
     begin
       puts inform("Creating web server configuration and directories")   
-      run "mkdir -p #{@options[:config]['environment']['log_dir']}#{domain}"
-      system "mdir -p #{@options[:config]['environment']['http_dir']}#{domain}/public"
+      sudo "mkdir -p #{@options[:config]['environment']['log_dir']}#{domain}"
+      system "mkdir -p #{@options[:config]['environment']['http_dir']}#{domain}/public"
       
       template = File.read('templates/vhost_config_rails.erb')
       config = ERB.new(template).result(self.get_binding)
@@ -48,6 +48,7 @@ namespace :deploy do
       puts alert("There was an error creating web server configuration and directories")
     else
       puts inform("Web server configuration and directories created successfully")
+      sudo "service httpd reload"
     end
   end
   
