@@ -4,7 +4,7 @@ namespace :deploy do
   
   task :rails do
     @options = get_options
-    role :web, @options[:config]['enviroment']['web_servers']
+    role :web, @options[:config]['environment']['web_servers']
     
     pwd = (0...12).map { (65 + rand(26)).chr }.join
     
