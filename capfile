@@ -5,6 +5,7 @@ for server in SETTINGS["environment"]["web_servers"] do
   role(:web) { server }
 end
 
+default_run_options[:pty] = true
 
 
 namespace :deploy do
