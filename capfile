@@ -1,10 +1,19 @@
+require 'yaml'
+SETTINGS = YAML.load_file('config/settings.yml')
+
+for server in SETTINGS["environment"]["web_servers"] do
+  role(:web) { server }
+end
+
+
+
 namespace :deploy do
   
   load 'utility.rb'
   
   task :rails do
-    @options = get_options
-    role :web, @options[:config]['environment']['web_servers']
+    
+    @options = get_options(SETTINGS)
     
     pwd = (0...12).map { (65 + rand(26)).chr }.join
     
@@ -42,12 +51,12 @@ namespace :deploy do
     end
   end
   
-  def get_options
-    require 'yaml'
+  def get_options(options)
+    
     set(:client, Capistrano::CLI.ui.ask("Client Name: ") )
     set(:nickname, Capistrano::CLI.ui.ask("Site Nickname: ") )
     set(:domain, Capistrano::CLI.ui.ask("Domain: ") )
-
+  
     create_dns = Capistrano::CLI.ui.agree("Create DNS zone and records? ([Yes] or No): ")
     
     if create_dns
@@ -57,10 +66,10 @@ namespace :deploy do
     end
     
     create_database = Capistrano::CLI.ui.agree("Create database? ([Yes] or No): ")
-    @config = YAML.load_file('config/settings.yml')
     
-    @options = {:dns => create_dns, :db => create_database, :config => @config, :client => client, :nickname => nickname, :domain => domain, :soa => soa}
-    return @options
+    
+    options = {:dns => create_dns, :db => create_database, :config => SETTINGS, :client => client, :nickname => nickname, :domain => domain, :soa => soa}
+    return ooptions
   end
   
   def init_api(provider, key)
