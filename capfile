@@ -17,6 +17,8 @@ namespace :deploy do
       @options[:config]['environment']['db']['name'] = "prod_#{@options[:nickname]}"
       create_db(@options[:config]['environment']['db'], pwd)
     end
+    
+    deploy::push_bits
   end
   
   task :push_bits, :roles => web do
