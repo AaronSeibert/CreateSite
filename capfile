@@ -96,7 +96,7 @@ namespace :deploy do
     puts inform("Creating database #{db['name']}")
     begin
       c = Mysql.new db['servers'][0], db['deploy_user'], db['deploy_pass']
-      c.query("CREATE DATABASE prod_#{db['name']}")
+      c.query("CREATE DATABASE #{db['name']}")
       c.query("GRANT ALL ON prod_#{db['name']}.* TO #{db['name']}@'%' identified by '#{pwd}")
       c.close
     rescue
