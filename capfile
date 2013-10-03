@@ -1,7 +1,6 @@
 namespace :deploy do
   
   load 'utility.rb'
-  role :web, @options[:config]['environments']['web_servers']
   
   task :rails do
     @options = get_options
@@ -22,7 +21,7 @@ namespace :deploy do
     deploy::push_bits
   end
   
-  task :push_bits, :roles => web do
+  task :push_bits, :hosts => @options[:config]['environments']['web_servers'] do
     
     require 'erb'
   
